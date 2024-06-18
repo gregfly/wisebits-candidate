@@ -20,5 +20,10 @@ abstract class Validator
         return $this->model->addError($this->attribute, $message);
     }
 
+    protected function isEmpty($value): bool
+    {
+        return $value === null || $value === [] || $value === '';
+    }
+
     abstract public function validate(): bool;
 }

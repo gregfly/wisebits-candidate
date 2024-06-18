@@ -1,9 +1,14 @@
 <?php
 namespace models;
 
+use validators\Validator;
+
 interface IModel
 {
-    public function getValidators(): array;
+    /**
+     * @return \Generator|Validator[]
+     */
+    public function getValidators(): \Generator;
     public function validate(): bool;
 
     public function getErrors(): array;
