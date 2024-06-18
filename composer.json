@@ -1,0 +1,9 @@
+{
+    "name": "wisebits-candidate",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "\\": "/"
+        }
+    }
+}
