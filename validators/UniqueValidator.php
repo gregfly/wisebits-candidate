@@ -1,7 +1,7 @@
 <?php
 namespace validators;
 
-use models\IModel;
+use models\ActiveRecord;
 
 /**
  * UniqueValidator
@@ -11,9 +11,8 @@ use models\IModel;
 class UniqueValidator extends Validator
 {
     public function __construct(
-        public IModel $model,
+        public ActiveRecord $model,
         public string $attribute,
-        public string $tableName,
         public string $errorMessage,
     ) {
         parent::__construct($model, $attribute);
@@ -22,7 +21,16 @@ class UniqueValidator extends Validator
     public function validate(): bool
     {
         $value = $this->getModelValue();
-        if ($value === null || $value === [] || $value === '') {
+        if ($this->isEmpty($value)) {
+            return true;
+        }
+        $modelClass = $this->model::class;
+        $condition = $this->attribute . '=:val';
+        $params = [':val' => $value];
+        if (!$this->model->isNewRecord()) {
+            $condition .= ' AND ' . $modelClass::primaryKey() . '!=' . $this->model->getPrimaryKey();
+        }
+        if ($modelClass::exists($condition, $params)) {
             $this->addModelError($this->errorMessage);
             return false;
         }

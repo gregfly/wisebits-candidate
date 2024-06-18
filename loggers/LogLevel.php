@@ -1,9 +1,14 @@
 <?php
 namespace loggers;
 
-enum LogLevel
+enum LogLevel: int
 {
-    case Info;
-    case Error;
-    case Trace;
+    case Trace = 100;
+    case Info = 500;
+    case Error = 1000;
+
+    public function toString(): string
+    {
+        return $this->name;
+    }
 }

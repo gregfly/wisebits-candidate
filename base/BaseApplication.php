@@ -1,6 +1,7 @@
 <?php
 namespace base;
 
+use base\Glob;
 use db\IDatabase;
 use loggers\ILogger;
 
@@ -14,7 +15,9 @@ abstract class BaseApplication
     public function __construct(
         protected IDatabase $db,
         protected ILogger $logger,
-    ) {}
+    ) {
+        Glob::$app = $this;
+    }
 
     private $url;
 

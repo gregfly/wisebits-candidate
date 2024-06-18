@@ -1,7 +1,7 @@
 <?php
 namespace models;
 
-use Glob;
+use base\Glob;
 use db\IDatabase;
 use validators\RegExValidator;
 use validators\LengthValidator;

@@ -15,7 +15,23 @@ abstract class ActiveRecord extends BaseModel
         return $this->getAttribute(static::primaryKey());
     }
 
-    public static function findOne($id): null|static
+    public function isNewRecord(): bool
+    {
+        return $this->getPrimaryKey() === null;
+    }
+
+    public static function exists(string $condition, array $params = []): array
+    {
+        $db = static::getDb();
+        $query = 'SELECT * FROM ' . static::getTableName() . ($condition? ' WHERE ' . $condition : '');
+        $row = $db->fetchOne($query, $params);
+        if (!$row) {
+            return false;
+        }
+        return true;
+    }
+
+    public static function findOne($id): ?static
     {
         $db = static::getDb();
         $query = 'SELECT * FROM ' . static::getTableName() . ' WHERE ' . static::primaryKey() . '=:id';
@@ -24,7 +40,21 @@ abstract class ActiveRecord extends BaseModel
         if (!$row) {
             return null;
         }
-        return new static($row);
+        return static::populateRow($row);
+    }
+
+    public function setAttributes(array $row): void
+    {
+        foreach ($row as $col => &$val) {
+            $this->setAttribute($col, $val);
+        }
+    }
+
+    protected static function &populateRow(array $row): static
+    {
+        $model = new static();
+        $model->setAttributes($row);
+        return $model;
     }
 
     abstract public static function primaryKey(): string;
