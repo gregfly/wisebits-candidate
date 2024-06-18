@@ -1,5 +1,5 @@
 {
-    "name": "wisebits-candidate",
+    "name": "gregfly/wisebits-candidate",
     "require": {},
     "autoload": {
         "psr-4": {
