@@ -1,7 +1,7 @@
 <?php
 namespace validators;
 
-use models\ActiveRecord;
+use db\ActiveRecord;
 
 /**
  * UniqueValidator
@@ -11,7 +11,7 @@ use models\ActiveRecord;
 class UniqueValidator extends Validator
 {
     public function __construct(
-        public ActiveRecord $model,
+        ActiveRecord $model,
         public string $attribute,
         public string $errorMessage,
     ) {
@@ -28,7 +28,8 @@ class UniqueValidator extends Validator
         $condition = $this->attribute . '=:val';
         $params = [':val' => $value];
         if (!$this->model->isNewRecord()) {
-            $condition .= ' AND ' . $modelClass::primaryKey() . '!=' . $this->model->getPrimaryKey();
+            $condition .= ' AND ' . $modelClass::primaryKey() . '!=:id';
+            $params[':id'] = $this->model->getPrimaryKey();
         }
         if ($modelClass::exists($condition, $params)) {
             $this->addModelError($this->errorMessage);

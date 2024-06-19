@@ -13,9 +13,9 @@ class LengthValidator extends Validator
     public function __construct(
         public IModel $model,
         public string $attribute,
-        public int $min = null,
+        public ?int $min = null,
         public string $minErrorMessage = '',
-        public int $max = null,
+        public ?int $max = null,
         public string $maxErrorMessage = '',
     ) {
         parent::__construct($model, $attribute);

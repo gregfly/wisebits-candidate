@@ -1,5 +1,5 @@
 <?php
-namespace db;
+namespace exceptions;
 
 /**
  * DatabaseException

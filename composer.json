@@ -7,7 +7,9 @@
             "db\\": "db",
             "loggers\\": "loggers",
             "models\\": "models",
+            "helpers\\": "helpers",
             "services\\": "services",
+            "exceptions\\": "exceptions",
             "validators\\": "validators"
         }
     }

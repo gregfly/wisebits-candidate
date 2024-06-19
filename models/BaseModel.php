@@ -1,12 +1,14 @@
 <?php
 namespace models;
 
+use exceptions\InvalidAttributeException;
+
 /**
  * BaseModel
  *
  * @author Volkov Grigorii
  */
-class BaseModel implements IModel
+abstract class BaseModel implements IModel
 {
     private $attributes = [];
     private $errors = [];

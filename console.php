@@ -6,7 +6,3 @@ $logger = new \loggers\EchoLogger();
 $application = new \base\ConsoleApplication($db, $logger);
 //$exitCode = $application->run();
 //exit($exitCode);
-
-$model = \models\User::findOne(1);
-
-var_dump($model);

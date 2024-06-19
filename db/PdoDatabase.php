@@ -2,7 +2,9 @@
 namespace db;
 
 use PDO;
+use PDOStatement;
 use base\Glob;
+use exceptions\DatabaseException;
 
 /**
  * PdoDatabase
@@ -37,10 +39,7 @@ class PdoDatabase implements IDatabase
         $this->open();
         try {
             Glob::trace('Query ' . $query);
-            $stmt = $this->pdo->prepare($query);
-            foreach ($params as $key => $value) {
-                $stmt->bindValue($key, $value);
-            }
+            $stmt = $this->createStatement($query, $params);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
@@ -53,14 +52,43 @@ class PdoDatabase implements IDatabase
         $this->open();
         try {
             Glob::trace('Query ' . $query);
-            $stmt = $this->pdo->prepare($query);
-            foreach ($params as $key => $value) {
-                $stmt->bindValue($key, $value);
-            }
+            $stmt = $this->createStatement($query, $params);
             $stmt->execute();
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             throw new DatabaseException($e->getMessage(), $e->getCode(), $e);
         }
+    }
+
+    public function execute(string $query, array $params = []): int
+    {
+        $this->open();
+        try {
+            Glob::trace('Query ' . $query);
+            $stmt = $this->createStatement($query, $params);
+            $stmt->execute();
+            return $stmt->rowCount();
+        } catch (\Exception $e) {
+            throw new DatabaseException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    public function getLastInsertId(): mixed
+    {
+        $this->open();
+        try {
+            return $this->pdo->lastInsertId(null);
+        } catch (\Exception $e) {
+            throw new DatabaseException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    protected function &createStatement($query, $params): PDOStatement
+    {
+        $stmt = $this->pdo->prepare($query);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        return $stmt;
     }
 }

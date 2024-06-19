@@ -6,10 +6,16 @@ namespace loggers;
  *
  * @author Volkov Grigorii
  */
-class EchoLogger implements ILogger
+final class EchoLogger implements ILogger
 {
+    public function __construct(
+        public LogLevel $minLevel = LogLevel::Trace,
+    ) {}
+
     public function log(LogLevel $lvl, string $message): void
     {
-        echo '[' . $lvl->toString() . '] ' . $message . PHP_EOL;
+        if ($lvl->value >= $this->minLevel->value) {
+            echo '[' . $lvl->toString() . '] ' . $message . PHP_EOL;
+        }
     }
 }

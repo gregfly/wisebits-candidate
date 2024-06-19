@@ -15,9 +15,9 @@ abstract class Validator
         return $this->model->getAttribute($this->attribute);
     }
 
-    protected function addModelError(string $message): mixed
+    protected function addModelError(string $message): void
     {
-        return $this->model->addError($this->attribute, $message);
+        $this->model->addError($this->attribute, $message);
     }
 
     protected function isEmpty($value): bool
