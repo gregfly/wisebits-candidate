@@ -55,9 +55,9 @@ abstract class BaseModel implements IModel
         return array_keys($this->attributes);
     }
 
-    public function getErrors(): array
+    public function getErrors(?string $name = null): array
     {
-        return $this->errors;
+        return $name? ($this->errors[$name] ?? []) : $this->errors;
     }
 
     public function hasErrors(): bool
@@ -65,8 +65,14 @@ abstract class BaseModel implements IModel
         return !empty($this->errors);
     }
 
+    public function clearErrors(): void
+    {
+        $this->errors = [];
+    }
+
     public function validate(): bool
     {
+        $this->clearErrors();
         foreach ($this->getValidators() as $validator) {
             $validator->validate();
         }

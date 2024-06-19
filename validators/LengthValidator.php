@@ -27,7 +27,7 @@ class LengthValidator extends Validator
         if ($this->isEmpty($value)) {
             return true;
         }
-        $len = mb_strlen((string)$value);
+        $len = is_countable($value)? count($value) : mb_strlen((string)$value);
         if (($this->min !== null) && ($len < $this->min)) {
             $this->addModelError($this->minErrorMessage);
             return false;

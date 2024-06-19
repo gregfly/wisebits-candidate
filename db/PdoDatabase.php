@@ -21,9 +21,9 @@ class PdoDatabase implements IDatabase
         public string $password,
     ) {}
 
-    protected function open()
+    public function open(): void
     {
-        if ($this->pdo !== null) {
+        if ($this->isActive()) {
             return;
         }
         try {
@@ -32,6 +32,19 @@ class PdoDatabase implements IDatabase
         } catch (\PDOException $e) {
             throw new DatabaseException($e->getMessage(), $e->getCode(), $e);
         }
+    }
+
+    public function close(): void
+    {
+        if ($this->isActive()) {
+            Glob::info('Close connection ' . $this->dsn);
+            $this->pdo = null;
+        }
+    }
+
+    public function isActive(): bool
+    {
+        return $this->pdo !== null;
     }
 
     public function fetchAll(string $query, array $params = []): array

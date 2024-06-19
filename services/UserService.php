@@ -11,7 +11,7 @@ use exceptions\UserNotFoundException;
  */
 class UserService
 {
-    public function create(string $name, string $email, string $notes): User
+    public function create(string $name, string $email, ?string $notes): User
     {
         $model = new User();
         $model->setAttributes([

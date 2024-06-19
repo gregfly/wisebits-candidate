@@ -13,7 +13,7 @@ class Json
         return json_encode($value);
     }
 
-    public static function decode(?string $json): string
+    public static function decode(?string $json): mixed
     {
         if ($json === null) {
             return $json;
