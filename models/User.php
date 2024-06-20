@@ -61,6 +61,16 @@ class User extends ActiveRecord
         return 'id';
     }
 
+    public function softDelete(): bool
+    {
+        if ($this->getAttribute('deleted')) {
+            $this->addError('deleted', 'Пользователь удален');
+            return false;
+        }
+        $this->setAttribute('deleted', date('Y-m-d H:i:s'));
+        return $this->save();
+    }
+
     protected function afterSave(bool $insert): void
     {
         if (!$insert) {

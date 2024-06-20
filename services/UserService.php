@@ -13,30 +13,63 @@ class UserService
 {
     public function create(string $name, string $email, ?string $notes): User
     {
-        $model = new User();
-        $model->setAttributes([
-            'name' => $name,
-            'email' => $email,
-            'notes' => $notes,
-            'created' => $this->now(),
-        ]);
-        $model->save();
-        return $model;
+        $db = User::getDb();
+        $db->beginTransaction();
+        try {
+            $model = new User();
+            $model->setAttributes([
+                'name' => $name,
+                'email' => $email,
+                'notes' => $notes,
+                'created' => $this->now(),
+            ]);
+            if ($model->save()) {
+                $db->commit();
+            } else {
+                $db->rollback();
+            }
+            return $model;
+        } catch (\Throwable $th) {
+            $db->rollback();
+            throw $th;
+        }
     }
 
     public function update(int $id, array $attributes): User
     {
-        $model = $this->findById($id);
-        $model->setAttributes($attributes);
-        $model->save();
-        return $model;
+        $db = User::getDb();
+        $db->beginTransaction();
+        try {
+            $model = $this->findById($id);
+            $model->setAttributes($attributes);
+            if ($model->save()) {
+                $db->commit();
+            } else {
+                $db->rollback();
+            }
+            return $model;
+        } catch (\Throwable $th) {
+            $db->rollback();
+            throw $th;
+        }
     }
 
     public function softDelete(int $id): User
     {
-        $model = $this->findById($id);
-        $model->setAttribute('deleted', $this->now());
-        $model->save();
+        $db = User::getDb();
+        $db->beginTransaction();
+        try {
+            $model = $this->findById($id);
+            if ($model->softDelete()) {
+                $db->commit();
+            } else {
+                $db->rollback();
+            }
+            return $model;
+        } catch (\Throwable $th) {
+            $db->rollback();
+            throw $th;
+        }
         return $model;
     }
 
@@ -47,7 +80,7 @@ class UserService
 
     protected function &findById($id): User
     {
-        $model = User::findOne($id);
+        $model = User::findOneForUpdate($id);
         if (!$model) {
             throw new UserNotFoundException('Пользователь ' . $id . ' не найден');
         }

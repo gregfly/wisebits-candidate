@@ -10,4 +10,8 @@ interface IDatabase
     public function fetchOne(string $query, array $params = []): mixed;
     public function execute(string $query, array $params = []): int;
     public function getLastInsertId(): mixed;
+    public function isActiveTransaction(): bool;
+    public function beginTransaction(): void;
+    public function commit(): void;
+    public function rollback(): void;
 }

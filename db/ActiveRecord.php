@@ -43,6 +43,18 @@ abstract class ActiveRecord extends BaseModel
         return static::populateRow($row);
     }
 
+    public static function findOneForUpdate($id): ?static
+    {
+        $db = static::getDb();
+        $query = 'SELECT * FROM ' . static::getTableName() . ' WHERE ' . static::primaryKey() . '=:id FOR UPDATE';
+        $params = [':id' => $id];
+        $row = $db->fetchOne($query, $params);
+        if (!$row) {
+            return null;
+        }
+        return static::populateRow($row);
+    }
+
     public function getAttributes(array $names = []): array
     {
         if (!$names) {

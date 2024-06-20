@@ -30,13 +30,16 @@ class PdoDatabase implements IDatabase
             Glob::info('Open connection ' . $this->dsn);
             $this->pdo = new PDO($this->dsn, $this->username, $this->password);
         } catch (\PDOException $e) {
-            throw new DatabaseException($e->getMessage(), $e->getCode(), $e);
+            throw new DatabaseException($e->getMessage(), (int)$e->getCode(), $e);
         }
     }
 
     public function close(): void
     {
         if ($this->isActive()) {
+            while ($this->isActiveTransaction()) {
+                $this->rollback();
+            }
             Glob::info('Close connection ' . $this->dsn);
             $this->pdo = null;
         }
@@ -56,7 +59,7 @@ class PdoDatabase implements IDatabase
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
-            throw new DatabaseException($e->getMessage(), $e->getCode(), $e);
+            throw new DatabaseException($e->getMessage(), (int)$e->getCode(), $e);
         }
     }
 
@@ -69,7 +72,7 @@ class PdoDatabase implements IDatabase
             $stmt->execute();
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
-            throw new DatabaseException($e->getMessage(), $e->getCode(), $e);
+            throw new DatabaseException($e->getMessage(), (int)$e->getCode(), $e);
         }
     }
 
@@ -82,7 +85,7 @@ class PdoDatabase implements IDatabase
             $stmt->execute();
             return $stmt->rowCount();
         } catch (\Exception $e) {
-            throw new DatabaseException($e->getMessage(), $e->getCode(), $e);
+            throw new DatabaseException($e->getMessage(), (int)$e->getCode(), $e);
         }
     }
 
@@ -92,7 +95,7 @@ class PdoDatabase implements IDatabase
         try {
             return $this->pdo->lastInsertId(null);
         } catch (\Exception $e) {
-            throw new DatabaseException($e->getMessage(), $e->getCode(), $e);
+            throw new DatabaseException($e->getMessage(), (int)$e->getCode(), $e);
         }
     }
 
@@ -103,5 +106,46 @@ class PdoDatabase implements IDatabase
             $stmt->bindValue($key, $value);
         }
         return $stmt;
+    }
+
+    protected int $transactionCounter = 0;
+
+    public function isActiveTransaction(): bool
+    {
+        return $this->transactionCounter > 0;
+    }
+
+    public function beginTransaction(): void
+    {
+        $this->open();
+        if (!$this->transactionCounter++) {
+            $this->pdo->beginTransaction();
+            return;
+        }
+        $this->exec('SAVEPOINT savepoint' . $this->transactionCounter);
+    }
+
+    public function commit(): void
+    {
+        $this->open();
+        if ($this->transactionCounter <= 0) {
+            throw new DatabaseException('Transaction is not progress');
+        }
+        if (!--$this->transactionCounter) {
+            $this->pdo->commit();
+        }
+    }
+
+    public function rollback(): void
+    {
+        $this->open();
+        if ($this->transactionCounter <= 0) {
+            throw new DatabaseException('Transaction is not progress');
+        }
+        if (--$this->transactionCounter) {
+            $this->exec('ROLLBACK TO savepoint' . ($this->transactionCounter + 1));
+            return;
+        }
+        $this->pdo->rollBack();
     }
 }
