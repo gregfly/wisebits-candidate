@@ -11,8 +11,6 @@ use models\IModel;
 class LengthValidator extends Validator
 {
     public function __construct(
-        public IModel $model,
-        public string $attribute,
         public ?int $min = null,
         public string $minErrorMessage = '',
         public ?int $max = null,
@@ -21,19 +19,19 @@ class LengthValidator extends Validator
         parent::__construct($model, $attribute);
     }
 
-    public function validate(): bool
+    public function validate(IModel $model, string $attribute): bool
     {
-        $value = $this->getModelValue();
+        $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
             return true;
         }
         $len = is_countable($value)? count($value) : mb_strlen((string)$value);
         if (($this->min !== null) && ($len < $this->min)) {
-            $this->addModelError($this->minErrorMessage);
+            $model->addError($attribute, $this->minErrorMessage);
             return false;
         }
         if (($this->max !== null) && ($len > $this->max)) {
-            $this->addModelError($this->maxErrorMessage);
+            $model->addError($attribute, $this->maxErrorMessage);
             return false;
         }
         return true;

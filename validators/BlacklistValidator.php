@@ -11,24 +11,22 @@ use models\IModel;
 class BlacklistValidator extends Validator
 {
     public function __construct(
-        public IModel $model,
-        public string $attribute,
         public array $words,
         public string $errorMessage,
     ) {
-        parent::__construct($model, $attribute);
+        parent::__construct();
     }
 
-    public function validate(): bool
+    public function validate(IModel $model, string $attribute): bool
     {
-        $value = $this->getModelValue();
+        $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
             return true;
         }
         $value = mb_strtolower((string)$value);
         foreach ($this->words as $word) {
             if (str_contains($value, mb_strtolower($word))) {
-                $this->addModelError($this->errorMessage);
+                $model->addError($attribute, $this->errorMessage);
                 return false;
             }
         }

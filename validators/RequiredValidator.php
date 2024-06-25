@@ -11,18 +11,16 @@ use models\IModel;
 class RequiredValidator extends Validator
 {
     public function __construct(
-        public IModel $model,
-        public string $attribute,
         public string $errorMessage,
     ) {
-        parent::__construct($model, $attribute);
+        parent::__construct();
     }
 
-    public function validate(): bool
+    public function validate(IModel $model, string $attribute): bool
     {
-        $value = $this->getModelValue();
+        $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
-            $this->addModelError($this->errorMessage);
+            $model->addError($attribute, $this->errorMessage);
             return false;
         }
         return true;

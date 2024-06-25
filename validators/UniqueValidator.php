@@ -11,16 +11,14 @@ use db\ActiveRecord;
 class UniqueValidator extends Validator
 {
     public function __construct(
-        ActiveRecord $model,
-        public string $attribute,
         public string $errorMessage,
     ) {
-        parent::__construct($model, $attribute);
+        parent::__construct();
     }
 
-    public function validate(): bool
+    public function validate(IModel $model, string $attribute): bool
     {
-        $value = $this->getModelValue();
+        $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
             return true;
         }
@@ -32,7 +30,7 @@ class UniqueValidator extends Validator
             $params[':id'] = $this->model->getPrimaryKey();
         }
         if ($modelClass::exists($condition, $params)) {
-            $this->addModelError($this->errorMessage);
+            $model->addError($attribute, $this->errorMessage);
             return false;
         }
         return true;
