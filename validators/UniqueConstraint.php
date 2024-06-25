@@ -4,11 +4,11 @@ namespace validators;
 use db\ActiveRecord;
 
 /**
- * UniqueValidator
+ * UniqueConstraint
  *
  * @author Volkov Grigorii
  */
-class UniqueValidator extends Validator
+class UniqueConstraint extends Constraint
 {
     public function __construct(
         public string $errorMessage,
@@ -16,7 +16,7 @@ class UniqueValidator extends Validator
         parent::__construct();
     }
 
-    public function validate(IModel $model, string $attribute): bool
+    public function validate(IModel $model, string $attribute): true|string
     {
         $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
@@ -30,8 +30,7 @@ class UniqueValidator extends Validator
             $params[':id'] = $this->model->getPrimaryKey();
         }
         if ($modelClass::exists($condition, $params)) {
-            $model->addError($attribute, $this->errorMessage);
-            return false;
+            return $this->errorMessage;
         }
         return true;
     }

@@ -4,11 +4,11 @@ namespace validators;
 use models\IModel;
 
 /**
- * BlacklistValidator
+ * BlacklistConstraint
  *
  * @author Volkov Grigorii
  */
-class BlacklistValidator extends Validator
+class BlacklistConstraint extends Constraint
 {
     public function __construct(
         public array $words,
@@ -17,7 +17,7 @@ class BlacklistValidator extends Validator
         parent::__construct();
     }
 
-    public function validate(IModel $model, string $attribute): bool
+    public function validate(IModel $model, string $attribute): true|string
     {
         $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
@@ -26,8 +26,7 @@ class BlacklistValidator extends Validator
         $value = mb_strtolower((string)$value);
         foreach ($this->words as $word) {
             if (str_contains($value, mb_strtolower($word))) {
-                $model->addError($attribute, $this->errorMessage);
-                return false;
+                return $this->errorMessage;
             }
         }
         return true;

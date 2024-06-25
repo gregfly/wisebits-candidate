@@ -4,11 +4,11 @@ namespace validators;
 use models\IModel;
 
 /**
- * RequiredValidator
+ * RequiredConstraint
  *
  * @author Volkov Grigorii
  */
-class RequiredValidator extends Validator
+class RequiredConstraint extends Constraint
 {
     public function __construct(
         public string $errorMessage,
@@ -16,12 +16,11 @@ class RequiredValidator extends Validator
         parent::__construct();
     }
 
-    public function validate(IModel $model, string $attribute): bool
+    public function validate(IModel $model, string $attribute): true|string
     {
         $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
-            $model->addError($attribute, $this->errorMessage);
-            return false;
+            return $this->errorMessage;
         }
         return true;
     }

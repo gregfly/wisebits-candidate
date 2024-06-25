@@ -4,11 +4,11 @@ namespace validators;
 use models\IModel;
 
 /**
- * CompareValidator
+ * CompareConstraint
  *
  * @author Volkov Grigorii
  */
-class CompareValidator extends Validator
+class CompareConstraint extends Constraint
 {
     public function __construct(
         public string $operator,
@@ -18,7 +18,7 @@ class CompareValidator extends Validator
         parent::__construct();
     }
 
-    public function validate(IModel $model, string $attribute): bool
+    public function validate(IModel $model, string $attribute): true|string
     {
         $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
@@ -37,8 +37,7 @@ class CompareValidator extends Validator
             default => false,
         };
         if (!$op) {
-            $model->addError($attribute, $this->errorMessage);
-            return false;
+            return $this->errorMessage;
         }
         return true;
     }

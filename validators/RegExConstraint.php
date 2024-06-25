@@ -4,11 +4,11 @@ namespace validators;
 use models\IModel;
 
 /**
- * RegExValidator
+ * RegExConstraint
  *
  * @author Volkov Grigorii
  */
-class RegExValidator extends Validator
+class RegExConstraint extends Constraint
 {
     public const PATTERN_LETTER_OR_NUMBER = '#^[a-z0-9]+$#i';
     public const PATTERN_DATETIME = '#^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$#i';
@@ -21,15 +21,14 @@ class RegExValidator extends Validator
         parent::__construct();
     }
 
-    public function validate(IModel $model, string $attribute): bool
+    public function validate(IModel $model, string $attribute): true|string
     {
         $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
             return true;
         }
         if (!preg_match($this->pattern, (string)$value)) {
-            $model->addError($attribute, $this->errorMessage);
-            return false;
+            return $this->errorMessage;
         }
         return true;
     }

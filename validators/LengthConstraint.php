@@ -4,11 +4,11 @@ namespace validators;
 use models\IModel;
 
 /**
- * LengthValidator
+ * LengthConstraint
  *
  * @author Volkov Grigorii
  */
-class LengthValidator extends Validator
+class LengthConstraint extends Constraint
 {
     public function __construct(
         public ?int $min = null,
@@ -16,10 +16,10 @@ class LengthValidator extends Validator
         public ?int $max = null,
         public string $maxErrorMessage = '',
     ) {
-        parent::__construct($model, $attribute);
+        parent::__construct();
     }
 
-    public function validate(IModel $model, string $attribute): bool
+    public function validate(IModel $model, string $attribute): true|string
     {
         $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
@@ -27,12 +27,10 @@ class LengthValidator extends Validator
         }
         $len = is_countable($value)? count($value) : mb_strlen((string)$value);
         if (($this->min !== null) && ($len < $this->min)) {
-            $model->addError($attribute, $this->minErrorMessage);
-            return false;
+            return $this->minErrorMessage;
         }
         if (($this->max !== null) && ($len > $this->max)) {
-            $model->addError($attribute, $this->maxErrorMessage);
-            return false;
+            return $this->maxErrorMessage;
         }
         return true;
     }
