@@ -63,4 +63,21 @@ abstract class EntityModel implements IModel, IEntity
             $this->setAttribute($col, $val);
         }
     }
+
+    /**
+     * Проверяет являются ли модели представителем одной сущности по первичному ключу.
+     * У разных сущностей могут быть одинаковые ключи, делаю большое допущение т.к
+     * в проекте одна сущность User
+     * @param IEntity $other
+     * @return bool
+     */
+    public function is(IEntity $other): bool
+    {
+        $pk1 = $this->getAttribute($this->primaryKey());
+        $pk2 = $this->getAttribute($other->primaryKey());
+        if (($pk1 === null) || ($pk2 === null)) {
+            return false;
+        }
+        return $pk1 === $pk2;
+    }
 }

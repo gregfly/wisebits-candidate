@@ -1,7 +1,9 @@
 <?php
 namespace validators;
 
-use db\ActiveRecord;
+use repositories\IRepository;
+use repositories\IEntity;
+use exceptions\InvalidArgumentException;
 
 /**
  * UniqueConstraint
@@ -11,6 +13,7 @@ use db\ActiveRecord;
 class UniqueConstraint extends Constraint
 {
     public function __construct(
+        public IRepository $repository,
         public string $errorMessage,
     ) {
         parent::__construct();
@@ -18,18 +21,15 @@ class UniqueConstraint extends Constraint
 
     public function validate(IModel $model, string $attribute): true|string
     {
+        if (!($model instanceof IEntity)) {
+            throw new InvalidArgumentException('$model должен реализовать интерфейс IEntity');
+        }
         $value = $model->getAttribute($attribute);
         if ($this->isEmpty($value)) {
             return true;
         }
-        $modelClass = $this->model::class;
-        $condition = $this->attribute . '=:val';
-        $params = [':val' => $value];
-        if (!$this->model->isNewRecord()) {
-            $condition .= ' AND ' . $modelClass::primaryKey() . '!=:id';
-            $params[':id'] = $this->model->getPrimaryKey();
-        }
-        if ($modelClass::exists($condition, $params)) {
+        $entity = $this->repository->findBy($this->attribute, $value);
+        if ($entity && !$model->is($entity)) {
             return $this->errorMessage;
         }
         return true;
