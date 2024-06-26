@@ -27,6 +27,9 @@ class RegExConstraint extends Constraint
         if ($this->isEmpty($value)) {
             return true;
         }
+        if (!is_string($value)) {
+            return false;
+        }
         if (!preg_match($this->pattern, (string)$value)) {
             return $this->errorMessage;
         }

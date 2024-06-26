@@ -1,9 +1,9 @@
 <?php
-namespace unit\services;
+namespace tests\services;
 
 use services\UserService;
 use exceptions\UserNotFoundException;
-use unit\TestCase;
+use tests\TestCase;
 
 /**
  * UserServiceTest

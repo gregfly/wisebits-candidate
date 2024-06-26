@@ -5,12 +5,12 @@ use repositories\IRepository;
 use loggers\ILogger;
 use models\User;
 use validators\Validator;
-use validators\RegExValidator;
-use validators\LengthValidator;
-use validators\RequiredValidator;
-use validators\CompareValidator;
-use validators\BlacklistValidator;
-use validators\UniqueValidator;
+use validators\RegExConstraint;
+use validators\LengthConstraint;
+use validators\RequiredConstraint;
+use validators\CompareConstraint;
+use validators\BlacklistConstraint;
+use validators\UniqueConstraint;
 use helpers\Words;
 use exceptions\UserNotFoundException;
 use exceptions\ValidationException;
@@ -29,8 +29,8 @@ class UserService
 
     public function create(string $name, string $email, ?string $notes): User
     {
-        $validator = $this->getValidator('create');
         $model = new User();
+        $validator = $this->getValidator('create');
         $model->setAttributes([
             'name' => $name,
             'email' => $email,
@@ -74,23 +74,23 @@ class UserService
     {
         return (new Validator())
                 //name
-                ->addContraint('name', new RequiredValidator('не может быть пустым'))
-                ->addContraint('name', new RegExValidator(RegExValidator::PATTERN_LETTER_OR_NUMBER, 'может состоять только из символов a-z и 0-9'))
-                ->addContraint('name', new LengthValidator(8, 'не может быть короче 8 символов', 64, 'не может быть длиннее 64 символов'))
-                ->addContraint('name', new BlacklistValidator(Words::forbiddenWords(), 'не должно содержать слов из списка запрещенных слов'))
-                ->addContraint('name', new UniqueValidator($this->repository, 'должно быть уникальным'))
+                ->addContraint('name', new RequiredConstraint('не может быть пустым'))
+                ->addContraint('name', new RegExConstraint(RegExConstraint::PATTERN_LETTER_OR_NUMBER, 'может состоять только из символов a-z и 0-9'))
+                ->addContraint('name', new LengthConstraint(8, 'не может быть короче 8 символов', 64, 'не может быть длиннее 64 символов'))
+                ->addContraint('name', new BlacklistConstraint(Words::forbiddenWords(), 'не должно содержать слов из списка запрещенных слов'))
+                ->addContraint('name', new UniqueConstraint($this->repository, 'должно быть уникальным'))
                 //email
-                ->addContraint('email', new RequiredValidator('не может быть пустым'))
-                ->addContraint('email', new RegExValidator(RegExValidator::PATTERN_EMAIL, 'должно иметь корректный для e-mail адреса формат'))
-                ->addContraint('email', new LengthValidator(max: 256, maxErrorMessage: 'не может быть длиннее 256 символов'))
-                ->addContraint('email', new BlacklistValidator(Words::forbiddenDomains(), 'не должно принадлежать домену из списка "ненадежных" доменов'))
-                ->addContraint('email', new UniqueValidator($this->repository, 'должно быть уникальным'))
+                ->addContraint('email', new RequiredConstraint('не может быть пустым'))
+                ->addContraint('email', new RegExConstraint(RegExConstraint::PATTERN_EMAIL, 'должно иметь корректный для e-mail адреса формат'))
+                ->addContraint('email', new LengthConstraint(max: 256, maxErrorMessage: 'не может быть длиннее 256 символов'))
+                ->addContraint('email', new BlacklistConstraint(Words::forbiddenDomains(), 'не должно принадлежать домену из списка "ненадежных" доменов'))
+                ->addContraint('email', new UniqueConstraint($this->repository, 'должно быть уникальным'))
                 //created
-                ->addContraint('created', new RequiredValidator('не может быть пустым'))
-                ->addContraint('created', new RegExValidator(RegExValidator::PATTERN_DATETIME, 'должно иметь корректный формат датавремя'))
+                ->addContraint('created', new RequiredConstraint('не может быть пустым'))
+                ->addContraint('created', new RegExConstraint(RegExConstraint::PATTERN_DATETIME, 'должно иметь корректный формат датавремя'))
                 //deleted
-                ->addContraint('deleted', new CompareValidator('>=', 'created', 'не может быть меньше значения поля created'))
-                ->addContraint('deleted', new RegExValidator(RegExValidator::PATTERN_DATETIME, 'должно иметь корректный формат датавремя'));
+                ->addContraint('deleted', new CompareConstraint('>=', 'created', 'не может быть меньше значения поля created'))
+                ->addContraint('deleted', new RegExConstraint(RegExConstraint::PATTERN_DATETIME, 'должно иметь корректный формат датавремя'));
     }
 
     protected function &findById($id): User

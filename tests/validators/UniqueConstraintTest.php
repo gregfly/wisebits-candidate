@@ -1,25 +1,16 @@
 <?php
-namespace unit\validators;
+namespace tests\validators;
 
-use validators\UniqueValidator;
-use unit\data\models\User;
-use unit\data\ar\ActiveRecord;
-use unit\TestCase;
+use validators\UniqueConstraint;
+use tests\TestCase;
 
 /**
- * RegExValidatorTest
+ * UniqueConstraintTest
  *
  * @author Volkov Grigorii
  */
-class UniqueValidatorTest extends TestCase
+class UniqueConstraintTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->mockApplication();
-        ActiveRecord::$db = $this->getDatabase();
-    }
-
     public function testValidateUnique(): void
     {
         $newUser = new User();
@@ -31,7 +22,7 @@ class UniqueValidatorTest extends TestCase
         $newUser->insert();
 
         $model = new User();
-        $validator = new UniqueValidator($model, 'name', '');
+        $validator = new UniqueConstraint($model, 'name', '');
 
         $model->setAttribute('name', '');
         $this->assertTrue($validator->validate());

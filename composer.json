@@ -9,8 +9,6 @@
     },
     "autoload": {
         "psr-4": {
-            "base\\": "base",
-            "db\\": "db",
             "loggers\\": "loggers",
             "models\\": "models",
             "helpers\\": "helpers",
@@ -22,7 +20,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "unit\\": "tests"
+            "tests\\": "tests"
         }
     }
 }

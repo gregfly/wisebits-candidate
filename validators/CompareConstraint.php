@@ -24,7 +24,7 @@ class CompareConstraint extends Constraint
         if ($this->isEmpty($value)) {
             return true;
         }
-        $compareValue = $this->model->getAttribute($this->compareAttribute);
+        $compareValue = $model->getAttribute($this->compareAttribute);
         $op = match ($this->operator) {
             '==' => $value == $compareValue,
             '===' => $value === $compareValue,

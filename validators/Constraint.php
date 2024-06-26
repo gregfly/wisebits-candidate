@@ -5,6 +5,8 @@ use models\IModel;
 
 abstract class Constraint
 {
+    public function __construct() {}
+
     protected function isEmpty($value): bool
     {
         return $value === null || $value === [] || $value === '';
