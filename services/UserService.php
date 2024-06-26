@@ -14,6 +14,7 @@ use validators\UniqueConstraint;
 use helpers\Words;
 use exceptions\UserNotFoundException;
 use exceptions\ValidationException;
+use events\UserChangedEvent;
 
 /**
  * UserService
@@ -53,6 +54,7 @@ class UserService
             throw new ValidationException($validator->getErrors());
         }
         $this->repository->save($model);
+        $this->dispatchUpdatedEvent($model);
         return $model;
     }
 
@@ -67,6 +69,7 @@ class UserService
             throw new ValidationException($validator->getErrors());
         }
         $this->repository->save($model);
+        $this->dispatchUpdatedEvent($model);
         return $model;
     }
 
@@ -100,5 +103,10 @@ class UserService
             throw new UserNotFoundException('Пользователь ' . $id . ' не найден');
         }
         return $model;
+    }
+
+    protected function dispatchUpdatedEvent(User $user): void
+    {
+        (new UserChangedEvent($user, $this->logger))->dispatch();
     }
 }

@@ -2,8 +2,12 @@
 namespace tests\services;
 
 use services\UserService;
+use models\User;
 use exceptions\UserNotFoundException;
+use exceptions\ValidationException;
 use tests\TestCase;
+use repositories\IRepository;
+use loggers\ILogger;
 
 /**
  * UserServiceTest
@@ -12,69 +16,142 @@ use tests\TestCase;
  */
 class UserServiceTest extends TestCase
 {
-    protected function setUp(): void
+    protected function mockRepository(): IRepository
     {
-        parent::setUp();
-        $this->mockApplication();
+        return $this->createMock('repositories\IRepository');
     }
 
-    public function testCreateUser(): void
+    protected function mockLogger(): ILogger
     {
-        $userService = new UserService();
+        return $this->createMock('loggers\ILogger');
+    }
 
-        $user = $userService->create('admin', 'admin@mail.ru', null);
-        $this->assertTrue($user->hasErrors());
-        $this->assertNull($user->getAttribute('id'));
+    public function invalidInputsProvider(): array
+    {
+        return [
+            'short username' => ['admin', 'admin@mail.ru', null],
+            'invalid letters in username' => ['admin000&', 'admin@mail.ru', null],
+            'invalid email' => ['username', 'admin', null],
+            'long username' => [str_repeat('u', 1000), 'admin@mail.ru', null],
+            'forbidden word in username' => ['password1', 'admin@mail.ru', null],
+            'forbidden domain in email' => ['username', 'admin@dom2.ru', null],
+        ];
+    }
 
-        $user = $userService->create('admin', 'admin@mail.com', null);
-        $this->assertTrue($user->hasErrors());
+    /**
+     * @return void
+     * @dataProvider invalidInputsProvider
+     */
+    public function testCreateUserFailed($username, $email, $notes): void
+    {
+        $mock = $this->mockRepository();
+        $userService = new UserService($mock, $this->mockLogger());
 
-        $user = $userService->create('root', 'admin@mail.ru', null);
-        $this->assertTrue($user->hasErrors());
+        $this->expectException(ValidationException::class);
+        $userService->create($username, $email, $notes);
+    }
 
-        $user = $userService->create('adminadmin', 'admin@mail.ru', null);
-        $this->assertFalse($user->hasErrors());
-        $this->assertNotNull($user->getAttribute('id'));
+    public function validInputsProvider(): array
+    {
+        return [
+            'typical' => ['username', 'admin@mail.ru', null],
+            'letter and numbers' => ['user0001', 'admin11@mail.ru', null],
+            'long username' => [str_repeat('u', 64), 'admin@mail.ru', null],
+            'long email' => ['username', str_repeat('e', 256 - 8) . '@mail.ru', null],
+            'with notes' => ['username', 'admin@mail.ru', 'notes'],
+        ];
+    }
+
+    /**
+     * @return void
+     * @dataProvider validInputsProvider
+     */
+    public function testCreateUserSuccess($username, $email, $notes): void
+    {
+        $mock = $this->mockRepository();
+        $userService = new UserService($mock, $this->mockLogger());
+
+        $user = $userService->create($username, $email, $notes);
+        $this->assertInstanceOf(User::class, $user);
+        $this->assertFalse($user->isDeleted());
         $this->assertNotNull($user->getAttribute('created'));
-        $this->assertNull($user->getAttribute('deleted'));
     }
 
-    public function testUpdateNoUser(): void
+    public function testUpdateUserNotFound(): void
     {
-        $userService = new UserService();
+        $mock = $this->mockRepository();
+        $userService = new UserService($mock, $this->mockLogger());
 
         $this->expectException(UserNotFoundException::class);
         $userService->update(1, ['email' => 'admin@mail.ru']);
     }
 
-    public function testUpdateUser(): void
+    /**
+     * @return void
+     * @dataProvider invalidInputsProvider
+     */
+    public function testUpdateUserFailed($username, $email, $notes): void
     {
-        $userService = new UserService();
-        $origUser = $userService->create('adminadmin', 'admin@mail.ru', null);
+        $user = new User();
+        $user->setAttributes(['id' => 1, 'name' => 'user0001', 'email' => 'admin@mail.ru', 'created' => '2024-06-26 00:00:00']);
+        $mock = $this->mockRepository();
+        $mock->method('findBy')->will($this->returnValue($user));
+        $userService = new UserService($mock, $this->mockLogger());
 
-        $user = $userService->update($origUser->getPrimaryKey(), ['email' => 'invalid']);
-        $this->assertTrue($user->hasErrors());
-
-        $user = $userService->update($origUser->getPrimaryKey(), ['email' => 'admin@mail.com']);
-        $this->assertEquals('admin@mail.com', $user->getAttribute('email'));
+        $this->expectException(ValidationException::class);
+        $userService->update(1, ['name' => $username, 'email' => $email, 'notes' => $notes]);
     }
 
-    public function testDeleteNoUser(): void
+    /**
+     * @return void
+     * @dataProvider validInputsProvider
+     */
+    public function testUpdateUserSuccess($username, $email, $notes): void
     {
-        $userService = new UserService();
+        $user = new User();
+        $user->setAttributes(['id' => 1, 'name' => 'user0001', 'email' => 'admin@mail.ru', 'created' => '2024-06-26 00:00:00']);
+        $repositoryMock = $this->mockRepository();
+        $repositoryMock->method('findBy')->will($this->returnValue($user));
+        $loggerMock = $this->mockLogger();
+        $loggerMock->expects($this->once())->method('log');
+        $userService = new UserService($repositoryMock, $loggerMock);
+
+        $user = $userService->update(1, ['name' => $username, 'email' => $email, 'notes' => $notes]);
+        $this->assertInstanceOf(User::class, $user);
+    }
+
+    public function testSoftDeleteUserNotFound(): void
+    {
+        $mock = $this->mockRepository();
+        $userService = new UserService($mock, $this->mockLogger());
 
         $this->expectException(UserNotFoundException::class);
         $userService->softDelete(1);
     }
 
-    public function testSoftDeleteUser(): void
+    public function testSoftDeleteUserAlreadyDeleted(): void
     {
-        $userService = new UserService();
-        $origUser = $userService->create('adminadmin', 'admin@mail.ru', null);
-        $this->assertNull($origUser->getAttribute('deleted'));
+        $user = new User();
+        $user->setAttributes(['id' => 1, 'name' => 'user0001', 'email' => 'admin@mail.ru', 'created' => '2024-06-26 00:00:00', 'deleted' => '2024-06-26 00:00:00']);
+        $mock = $this->mockRepository();
+        $mock->method('findBy')->will($this->returnValue($user));
+        $userService = new UserService($mock, $this->mockLogger());
 
-        $user = $userService->softDelete($origUser->getPrimaryKey());
-        $this->assertFalse($user->hasErrors());
-        $this->assertNotNull($user->getAttribute('deleted'));
+        $this->expectException(UserNotFoundException::class);
+        $userService->softDelete(1);
+    }
+
+    public function testSoftDeleteUserSuccess(): void
+    {
+        $user = new User();
+        $user->setAttributes(['id' => 1, 'name' => 'user0001', 'email' => 'admin@mail.ru', 'created' => '2024-06-26 00:00:00']);
+        $repositoryMock = $this->mockRepository();
+        $repositoryMock->method('findBy')->will($this->returnValue($user));
+        $loggerMock = $this->mockLogger();
+        $loggerMock->expects($this->once())->method('log');
+        $userService = new UserService($repositoryMock, $loggerMock);
+
+        $user = $userService->softDelete(1);
+        $this->assertTrue($user->isDeleted());
     }
 }

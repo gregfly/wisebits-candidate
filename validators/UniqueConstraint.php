@@ -3,6 +3,7 @@ namespace validators;
 
 use repositories\IRepository;
 use repositories\IEntity;
+use models\IModel;
 use exceptions\InvalidArgumentException;
 
 /**
@@ -28,7 +29,7 @@ class UniqueConstraint extends Constraint
         if ($this->isEmpty($value)) {
             return true;
         }
-        $entity = $this->repository->findBy($this->attribute, $value);
+        $entity = $this->repository->findBy($attribute, $value);
         if ($entity && !$model->is($entity)) {
             return $this->errorMessage;
         }

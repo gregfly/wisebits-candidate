@@ -1,6 +1,8 @@
 <?php
 namespace exceptions;
 
+use helpers\Json;
+
 /**
  * ValidationException
  *
@@ -8,8 +10,8 @@ namespace exceptions;
  */
 class ValidationException extends \Exception
 {
-    public function __construct(public $validationErrors): \Exception
+    public function __construct(public $validationErrors)
     {
-        return parent::__construct(implode(' ', $this->validationErrors), 400, null);
+        return parent::__construct(Json::encode($this->validationErrors), 400, null);
     }
 }

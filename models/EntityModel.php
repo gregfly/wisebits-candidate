@@ -74,7 +74,7 @@ abstract class EntityModel implements IModel, IEntity
     public function is(IEntity $other): bool
     {
         $pk1 = $this->getAttribute($this->primaryKey());
-        $pk2 = $this->getAttribute($other->primaryKey());
+        $pk2 = $other->getAttribute($other->primaryKey());
         if (($pk1 === null) || ($pk2 === null)) {
             return false;
         }

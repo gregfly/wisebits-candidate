@@ -32,7 +32,7 @@ class BlacklistConstraintTest extends TestCase
      * @return void
      * @dataProvider attrsProvider
      */
-    public function testValidateAttrValue(string $attrValue, string|true $expected): void
+    public function testValidateAttrValue($attrValue, $expected): void
     {
         $stub = $this->createStub('models\IModel');
         $stub->method('getAttribute')->will($this->returnValue($attrValue));

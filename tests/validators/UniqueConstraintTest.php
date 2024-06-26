@@ -11,29 +11,55 @@ use tests\TestCase;
  */
 class UniqueConstraintTest extends TestCase
 {
-    public function testValidateUnique(): void
+    public $errorMsg = 'ERROR';
+
+    public function testValidateSuccess(): void
     {
-        $newUser = new User();
-        $newUser->setAttributes([
-            'name' => 'username',
-            'email' => 'username@mail.ru',
-            'created' => date('Y-m-d H:i:s'),
-        ]);
-        $newUser->insert();
+        $repositoryStub = $this->createStub('repositories\IRepository');
+        $repositoryStub->method('findBy')->will($this->returnValue(null));
+        $stub = UserStub::createFrom(1, 'username');
+        $validator = new UniqueConstraint($repositoryStub, $this->errorMsg);
 
-        $model = new User();
-        $validator = new UniqueConstraint($model, 'name', '');
+        $this->assertTrue($validator->validate($stub, 'username'));
+    }
 
-        $model->setAttribute('name', '');
-        $this->assertTrue($validator->validate());
+    public function testValidateEditSuccess(): void
+    {
+        $repositoryStub = $this->createStub('repositories\IRepository');
+        $repositoryStub->method('findBy')->will($this->returnValue(UserStub::createFrom(1, 'username')));
+        $stub = UserStub::createFrom(1, 'username');
+        $validator = new UniqueConstraint($repositoryStub, $this->errorMsg);
 
-        $model->setAttribute('name', 'username1');
-        $this->assertTrue($validator->validate());
+        $this->assertTrue($validator->validate($stub, 'username'));
+    }
 
-        $model->setAttribute('name', 'Username');
-        $this->assertFalse($validator->validate());
+    public function testValidateFailed(): void
+    {
+        $repositoryStub = $this->createStub('repositories\IRepository');
+        $repositoryStub->method('findBy')->will($this->returnValue(UserStub::createFrom(2, 'username')));
+        $stub = UserStub::createFrom(1, 'username');
+        $validator = new UniqueConstraint($repositoryStub, $this->errorMsg);
 
-        $model->setAttribute('name', 'username');
-        $this->assertFalse($validator->validate());
+        $this->assertEquals($this->errorMsg, $validator->validate($stub, 'username'));
+    }
+}
+
+class UserStub extends \models\EntityModel
+{
+    public function __construct()
+    {
+        parent::__construct(['id', 'username']);
+    }
+
+    public static function primaryKey(): string
+    {
+        return 'id';
+    }
+
+    public static function createFrom(int $id, string $username): static
+    {
+        $m = new static();
+        $m->setAttributes(['id' => $id, 'username' => $username]);
+        return $m;
     }
 }

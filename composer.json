@@ -9,6 +9,7 @@
     },
     "autoload": {
         "psr-4": {
+            "events\\": "events",
             "loggers\\": "loggers",
             "models\\": "models",
             "helpers\\": "helpers",

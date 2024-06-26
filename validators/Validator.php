@@ -10,20 +10,14 @@ use models\IModel;
  */
 class Validator
 {
-    private $constraints = [];
+    private $contraints = [];
     private $errors = [];
 
-    public function __construct(
-        array $contraints = [],
-    ) {
-        foreach ($contraints as &$contraint) {
-            $this->addContraint($contraint[0], $contraint[1]);
-        }
-    }
+    public function __construct() {}
 
     public function addContraint(string $attribute, Constraint $v): static
     {
-        $this->contraints[] = [$attribute, $v];
+        $this->contraints[$attribute][] = $v;
         return $this;
     }
 
@@ -50,10 +44,12 @@ class Validator
     public function validate(IModel $model): bool
     {
         $this->clearErrors();
-        foreach ($this->constraints as &$contraint) {
-            $valid = $contraint[1]->validate($model, $contraint[0]);
-            if ($valid !== true) {
-                $this->addError($contraint[0], $valid);
+        foreach ($this->contraints as $attribute => &$contraints) {
+            foreach ($contraints as &$contraint) {
+                $valid = $contraint->validate($model, $attribute);
+                if ($valid !== true) {
+                    $this->addError($attribute, $valid);
+                }
             }
         }
         return !$this->hasErrors();
