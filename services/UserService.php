@@ -1,6 +1,7 @@
 <?php
 namespace services;
 
+use repositories\IRepository;
 use models\User;
 use validators\Validator;
 use validators\RegExValidator;
@@ -38,7 +39,7 @@ class UserService
         if (!$validator->validate($model)) {
             throw new ValidationException($validator->getErrors());
         }
-        $repository->storeUser($model);
+        $repository->save($model);
         return $model;
     }
 
@@ -93,13 +94,13 @@ class UserService
                 ->addContraint('name', new RegExValidator(RegExValidator::PATTERN_LETTER_OR_NUMBER, 'может состоять только из символов a-z и 0-9'))
                 ->addContraint('name', new LengthValidator(8, 'не может быть короче 8 символов', 64, 'не может быть длиннее 64 символов'))
                 ->addContraint('name', new BlacklistValidator(Words::forbiddenWords(), 'не должно содержать слов из списка запрещенных слов'))
-                ->addContraint('name', new UniqueValidator('должно быть уникальным'))
+                ->addContraint('name', new UniqueValidator($repository, 'должно быть уникальным'))
                 //email
                 ->addContraint('email', new RequiredValidator('не может быть пустым'))
                 ->addContraint('email', new RegExValidator(RegExValidator::PATTERN_EMAIL, 'должно иметь корректный для e-mail адреса формат'))
                 ->addContraint('email', new LengthValidator(max: 256, maxErrorMessage: 'не может быть длиннее 256 символов'))
-                ->addContraint('email', new BlacklistValidator($this, 'email', Words::forbiddenDomains(), 'не должно принадлежать домену из списка "ненадежных" доменов'))
-                ->addContraint('email', new UniqueValidator($this, 'email', 'должно быть уникальным'))
+                ->addContraint('email', new BlacklistValidator(Words::forbiddenDomains(), 'не должно принадлежать домену из списка "ненадежных" доменов'))
+                ->addContraint('email', new UniqueValidator($repository, 'должно быть уникальным'))
                 //created
                 ->addContraint('created', new RequiredValidator('не может быть пустым'))
                 ->addContraint('created', new RegExValidator(RegExValidator::PATTERN_DATETIME, 'должно иметь корректный формат датавремя'))
@@ -110,7 +111,7 @@ class UserService
 
     protected function &findById($id): User
     {
-        $model = $this->repository->findUserForUpdate($id);
+        $model = $this->repository->findBy(User::primaryKey(), $id);
         if (!$model) {
             throw new UserNotFoundException('Пользователь ' . $id . ' не найден');
         }

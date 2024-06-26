@@ -2,16 +2,16 @@
 namespace models;
 
 use exceptions\InvalidAttributeException;
+use repositories\IEntity;
 
 /**
- * BaseModel
+ * EntityModel
  *
  * @author Volkov Grigorii
  */
-abstract class BaseModel implements IModel
+abstract class EntityModel implements IModel, IEntity
 {
     private $attributes = [];
-    private $errors = [];
 
     public function __construct(array $attributes)
     {
@@ -22,16 +22,6 @@ abstract class BaseModel implements IModel
                 $this->attributes[$name] = $val;
             }
         }
-    }
-
-    public function addError(string $name, string $message): void
-    {
-        $this->errors[$name][] = $message;
-    }
-
-    public function getValidators(): \Generator
-    {
-        return [];
     }
 
     public function getAttribute(string $name): mixed
@@ -55,27 +45,22 @@ abstract class BaseModel implements IModel
         return array_keys($this->attributes);
     }
 
-    public function getErrors(?string $name = null): array
+    public function getAttributes(array $names = []): array
     {
-        return $name? ($this->errors[$name] ?? []) : $this->errors;
-    }
-
-    public function hasErrors(): bool
-    {
-        return !empty($this->errors);
-    }
-
-    public function clearErrors(): void
-    {
-        $this->errors = [];
-    }
-
-    public function validate(): bool
-    {
-        $this->clearErrors();
-        foreach ($this->getValidators() as $validator) {
-            $validator->validate();
+        if (!$names) {
+            $names = $this->attributeNames();
         }
-        return !$this->hasErrors();
+        $values = [];
+        foreach ($names as &$name) {
+            $values[$name] = $this->getAttribute($name);
+        }
+        return $values;
+    }
+
+    public function setAttributes(array $row): void
+    {
+        foreach ($row as $col => &$val) {
+            $this->setAttribute($col, $val);
+        }
     }
 }

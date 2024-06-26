@@ -16,7 +16,8 @@
             "helpers\\": "helpers",
             "services\\": "services",
             "exceptions\\": "exceptions",
-            "validators\\": "validators"
+            "validators\\": "validators",
+            "repositories\\": "repositories"
         }
     },
     "autoload-dev": {
