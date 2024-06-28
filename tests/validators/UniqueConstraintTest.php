@@ -44,7 +44,7 @@ class UniqueConstraintTest extends TestCase
     }
 }
 
-class UserStub extends \models\EntityModel
+final class UserStub extends \models\EntityModel
 {
     public function __construct()
     {

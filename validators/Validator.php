@@ -8,7 +8,7 @@ use models\IModel;
  *
  * @author Volkov Grigorii
  */
-class Validator
+class Validator implements IValidator
 {
     private $contraints = [];
     private $errors = [];

@@ -3,8 +3,9 @@ namespace services;
 
 use repositories\IRepository;
 use loggers\ILogger;
+use validators\IValidatorFactory;
 use models\User;
-use validators\Validator;
+use validators\IValidator;
 use validators\RegExConstraint;
 use validators\LengthConstraint;
 use validators\RequiredConstraint;
@@ -26,6 +27,7 @@ class UserService
     public function __construct(
         public IRepository $repository,
         public ILogger $logger,
+        public IValidatorFactory $validatorFactory,
     ) {}
 
     public function create(string $name, string $email, ?string $notes): User
@@ -73,9 +75,9 @@ class UserService
         return $model;
     }
 
-    protected function getValidator(string $scenario): Validator
+    protected function getValidator(string $scenario): IValidator
     {
-        return (new Validator())
+        return $this->validatorFactory->createValidator()
                 //name
                 ->addContraint('name', new RequiredConstraint('не может быть пустым'))
                 ->addContraint('name', new RegExConstraint(RegExConstraint::PATTERN_LETTER_OR_NUMBER, 'может состоять только из символов a-z и 0-9'))
