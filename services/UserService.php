@@ -6,12 +6,6 @@ use loggers\ILogger;
 use validators\IValidatorFactory;
 use models\User;
 use validators\IValidator;
-use validators\RegExConstraint;
-use validators\LengthConstraint;
-use validators\RequiredConstraint;
-use validators\CompareConstraint;
-use validators\BlacklistConstraint;
-use validators\UniqueConstraint;
 use helpers\Words;
 use exceptions\UserNotFoundException;
 use exceptions\ValidationException;
@@ -79,23 +73,23 @@ class UserService
     {
         return $this->validatorFactory->createValidator()
                 //name
-                ->addContraint('name', new RequiredConstraint('не может быть пустым'))
-                ->addContraint('name', new RegExConstraint(RegExConstraint::PATTERN_LETTER_OR_NUMBER, 'может состоять только из символов a-z и 0-9'))
-                ->addContraint('name', new LengthConstraint(8, 'не может быть короче 8 символов', 64, 'не может быть длиннее 64 символов'))
-                ->addContraint('name', new BlacklistConstraint(Words::forbiddenWords(), 'не должно содержать слов из списка запрещенных слов'))
-                ->addContraint('name', new UniqueConstraint($this->repository, 'должно быть уникальным'))
+                ->addRequired('name', 'не может быть пустым')
+                ->addRegEx('name', '#^[a-z0-9]+$#i', 'может состоять только из символов a-z и 0-9')
+                ->addLength('name', 8, 'не может быть короче 8 символов', 64, 'не может быть длиннее 64 символов')
+                ->addBlacklist('name', Words::forbiddenWords(), 'не должно содержать слов из списка запрещенных слов')
+                ->addUnique('name', $this->repository, 'должно быть уникальным')
                 //email
-                ->addContraint('email', new RequiredConstraint('не может быть пустым'))
-                ->addContraint('email', new RegExConstraint(RegExConstraint::PATTERN_EMAIL, 'должно иметь корректный для e-mail адреса формат'))
-                ->addContraint('email', new LengthConstraint(max: 256, maxErrorMessage: 'не может быть длиннее 256 символов'))
-                ->addContraint('email', new BlacklistConstraint(Words::forbiddenDomains(), 'не должно принадлежать домену из списка "ненадежных" доменов'))
-                ->addContraint('email', new UniqueConstraint($this->repository, 'должно быть уникальным'))
+                ->addRequired('email', 'не может быть пустым')
+                ->addEmail('email', 'должно иметь корректный для e-mail адреса формат')
+                ->addLength('email', max: 256, maxErrorMessage: 'не может быть длиннее 256 символов')
+                ->addBlacklist('email', Words::forbiddenDomains(), 'не должно принадлежать домену из списка "ненадежных" доменов')
+                ->addUnique('email', $this->repository, 'должно быть уникальным')
                 //created
-                ->addContraint('created', new RequiredConstraint('не может быть пустым'))
-                ->addContraint('created', new RegExConstraint(RegExConstraint::PATTERN_DATETIME, 'должно иметь корректный формат датавремя'))
+                ->addRequired('created', 'не может быть пустым')
+                ->addDateTime('created', 'должно иметь корректный формат датавремя')
                 //deleted
-                ->addContraint('deleted', new CompareConstraint('>=', 'created', 'не может быть меньше значения поля created'))
-                ->addContraint('deleted', new RegExConstraint(RegExConstraint::PATTERN_DATETIME, 'должно иметь корректный формат датавремя'));
+                ->addCompare('deleted', '>=', 'created', 'не может быть меньше значения поля created')
+                ->addDateTime('deleted', 'должно иметь корректный формат датавремя');
     }
 
     protected function &findById($id): User

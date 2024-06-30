@@ -34,4 +34,12 @@ final class Validator implements IValidator
     public function getErrors(?string $name = null): array {}
     public function hasErrors(): bool {}
     public function validate(\models\IModel $model): bool {}
+    public function addBlacklist(string $attribute, array $words, string $errorMessage = ''): static {}
+    public function addCompare(string $attribute, string $operator, string $compareAttribute, string $errorMessage = ''): static {}
+    public function addDateTime(string $attribute, string $errorMessage = ''): static {}
+    public function addEmail(string $attribute, string $errorMessage = ''): static {}
+    public function addLength(string $attribute, ?int $min = null, string $minErrorMessage = '', ?int $max = null, string $maxErrorMessage = ''): static {}
+    public function addRegEx(string $attribute, string $pattern, string $errorMessage = ''): static {}
+    public function addRequired(string $attribute, string $errorMessage = ''): static {}
+    public function addUnique(string $attribute, \repositories\IRepository $repository, string $errorMessage = ''): static {}
 }
